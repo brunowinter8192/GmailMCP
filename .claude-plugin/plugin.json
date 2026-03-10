@@ -1,0 +1,15 @@
+{
+  "name": "gmail",
+  "version": "1.0.0",
+  "description": "Gmail MCP server - search and read emails (read-only)",
+  "author": {
+    "name": "Bruno Winter"
+  },
+  "keywords": ["gmail", "email", "mcp", "google"],
+  "mcpServers": {
+    "gmail": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/mcp-start.sh",
+      "args": []
+    }
+  }
+}
