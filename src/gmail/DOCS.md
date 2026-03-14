@@ -140,15 +140,19 @@ full = format_email_full(msg)        # Complete: headers, body, attachments
 | `format_date(internal_date_ms)` | Convert Gmail internalDate (ms epoch) to `YYYY-MM-DD HH:MM` |
 | `extract_body(payload)` | Extract plain text from MIME payload (handles multipart, nested) |
 | `extract_attachments(payload)` | Extract attachment filenames with sizes |
-| `strip_html(html)` | Convert HTML to plain text (br → newline, remove tags/scripts) |
+| `strip_html(html)` | Convert HTML to plain text via BeautifulSoup (removes style/script/comments, extracts text) |
 | `clean_body(text)` | Remove tracking URLs, footers, zero-width chars, collapse whitespace |
 | `format_email_summary(msg)` | Format metadata view: ID, date, from, subject, snippet |
 | `format_email_full(msg)` | Format full view: all headers, cleaned body, attachment list |
 
 **Body extraction priority:**
-1. `text/plain` (preferred)
-2. `text/html` → stripped via `strip_html()` + `clean_body()`
+1. `text/html` (preferred — richer content, especially for LinkedIn/transactional emails)
+2. `text/plain` (fallback when no HTML part exists)
 3. Nested multipart → recursive extraction
+
+HTML is converted to plain text via `strip_html()` (BeautifulSoup) + `clean_body()` (footer removal, URL cleanup).
+
+**Dependencies:** `beautifulsoup4` (HTML parsing)
 
 ---
 

@@ -1,0 +1,13 @@
+# Test corpus for Gmail parsing suite
+# Format: message_id|label|expected_content_snippet
+#
+# Each line defines a test email with:
+#   message_id             — Gmail message ID (from search_emails or list_emails)
+#   label                  — Human-readable label for reports
+#   expected_content_snippet — Substring that MUST appear in parsed body (regression check)
+
+19ce2f980b31a595|La Fosse LinkedIn Absage|Bewerbung nicht in die engere Auswahl
+19cd38e43553a352|AlphaPet Absage|nicht in den nächsten Schritt
+19cd2e39ea14febb|DocMorris Eingang|Agentic AI Specialist
+19cd3c9be19359f5|kiresult Eingang|Data Engineer Procurement
+19cd37a6405da678|Swans Eingang|Applied AI Specialist

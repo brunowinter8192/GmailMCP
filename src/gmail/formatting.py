@@ -3,6 +3,8 @@ import base64
 import re
 from datetime import datetime
 
+from bs4 import BeautifulSoup, Comment
+
 
 # FUNCTIONS
 
@@ -56,7 +58,8 @@ def extract_body(payload: dict) -> str:
             if nested:
                 return nested
 
-    return plain_text or html_text or ""
+    # Prefer HTML (richer content) over plain text when available
+    return html_text or plain_text or ""
 
 
 def extract_attachments(payload: dict) -> list[str]:
@@ -76,19 +79,16 @@ def extract_attachments(payload: dict) -> list[str]:
 
 
 def strip_html(html: str) -> str:
-    """Convert HTML email body to plain text."""
-    # Replace <br> variants with newlines
-    text = re.sub(r'<br\s*/?\s*>', '\n', html, flags=re.IGNORECASE)
-    # Replace block elements with newlines
-    text = re.sub(r'</(p|div|tr|li|h[1-6])>', '\n', text, flags=re.IGNORECASE)
+    """Convert HTML email body to plain text using BeautifulSoup."""
+    soup = BeautifulSoup(html, "html.parser")
     # Remove style/script blocks entirely
-    text = re.sub(r'<(style|script)[^>]*>.*?</\1>', '', text, flags=re.IGNORECASE | re.DOTALL)
+    for tag in soup(["style", "script"]):
+        tag.decompose()
     # Remove HTML comments (including Outlook conditionals)
-    text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
-    # Remove all remaining HTML tags
-    text = re.sub(r'<[^>]+>', '', text)
-    # Decode common HTML entities
-    text = text.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&nbsp;', ' ').replace('&#39;', "'").replace('&quot;', '"')
+    for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
+        comment.extract()
+    # Extract text with newlines for block elements
+    text = soup.get_text(separator="\n")
     return text
 
 
@@ -97,8 +97,8 @@ def clean_body(text: str) -> str:
     if not text:
         return text
 
-    # Strip HTML if body contains HTML tags
-    if '<html' in text.lower() or '<body' in text.lower() or '<div' in text.lower():
+    # Strip HTML if body contains any HTML tags
+    if re.search(r'<[a-zA-Z][^>]*>', text):
         text = strip_html(text)
 
     # Remove zero-width spaces
