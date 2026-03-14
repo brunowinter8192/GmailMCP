@@ -155,6 +155,8 @@ gmail/
     list_emails.py         # List by label orchestration
     read_email.py          # Full message read orchestration
     formatting.py          # Email formatting (summary + full views)
+  dev/
+    parsing_suite/         # Test suite for email body parsing (see DOCS.md)
 ```
 
 **Module details:** [src/gmail/DOCS.md](src/gmail/DOCS.md)
@@ -180,4 +182,4 @@ gmail/
 
 - **Read-only** — cannot send, delete, or modify emails (scope: `gmail.readonly`)
 - **No attachment download** — attachment names listed but content not downloadable
-- **HTML fallback** — prioritizes text/plain, falls back to stripped HTML
+- **HTML preferred** — prioritizes text/html (via BeautifulSoup), falls back to text/plain
