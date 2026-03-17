@@ -73,6 +73,32 @@ description: Gmail MCP tools — search and read emails (read-only)
 - `list_emails`: Default 20, max 50
 - For large result sets: use date filters to narrow scope
 
+## Job Application Email Check
+
+When checking for job application updates, run TWO searches to avoid blind spots:
+
+**Search 1 — By company name:**
+```
+search_emails(query="Company1 OR Company2 OR Company3 after:YYYY/MM/DD", max_results=30)
+```
+Use the earliest application date as `after:` — not today's date.
+
+**Search 2 — By subject keywords (catches emails where company name is missing):**
+```
+search_emails(query="subject:Bewerbung OR subject:application OR subject:interview OR subject:Einladung OR subject:Absage OR subject:rejection OR subject:next steps after:YYYY/MM/DD", max_results=30)
+```
+
+**Why two searches:** Recruiting platforms (Greenhouse, Lever, Workable, Ashby) sometimes send emails without the company name in subject/body. Search 1 alone would miss those. Search 2 catches generic recruiting emails.
+
+**After search:** If any email looks like a real update (not just Eingangsbestaetigung), use `read_email` to get the full content before reporting to user.
+
+**Known senders for recruiting platforms:**
+- `no-reply@msg.join.com` — join.com (kiresult, cinify, Endo Health)
+- `no-reply@ashbyhq.com` — Ashby (Swans)
+- `workday@docmorris.com` — Workday (DocMorris)
+- `jobs-noreply@linkedin.com` — LinkedIn Easy Apply
+- `*.recruitee.com` — Recruitee (celver)
+
 ## Known Limitations
 
 - **Read-only** — cannot send, delete, or modify emails (scope: `gmail.readonly`)
