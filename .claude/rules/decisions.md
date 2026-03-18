@@ -1,0 +1,1 @@
+/Users/brunowinter2000/.claude/shared-rules/global/decisions.md

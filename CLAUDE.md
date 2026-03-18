@@ -4,10 +4,11 @@ Gmail API integration for reading and searching emails.
 
 ## Sources
 
-| Source | Purpose |
-|--------|---------|
-| Gmail API Ref | Endpoints, parameters, response schemas |
-| Existing Code | Currently used fields, patterns |
+See [sources/sources.md](sources/sources.md).
+
+## Pipeline Components
+
+### Key Files
 
 ## Project Structure
 
@@ -17,8 +18,11 @@ gmail/
 ├── mcp-start.sh
 ├── requirements.txt
 ├── README.md                       → [Setup & External Docs](README.md)
+├── decisions/
 ├── auth/
-│   └── setup.py                    One-time OAuth setup
+│   └── setup.py                    → One-time OAuth setup
 ├── src/
 │   └── gmail/                      → [DOCS.md](src/gmail/DOCS.md)
+├── dev/
+│   └── parsing_suite/
 ```
