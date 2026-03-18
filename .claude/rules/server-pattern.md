@@ -8,10 +8,21 @@ paths:
 
 **CRITICAL:** server.py is the orchestrator. Only imports and tool definitions.
 
+## Tool Schema Philosophy
+
+MCP tool schemas are loaded ON-DEMAND — only when a tool is called, not before. Every word in descriptions and parameter annotations costs context tokens at every call.
+
+**Rules:**
+- **Tool descriptions:** Minimal docstring (3-5 words). Skill provides all pre-call guidance.
+- **Parameter descriptions:** NONE. Use plain parameters (`param: str`), not `Annotated[str, Field(description="...")]`. The MCP schema shows only name + type + default — that's enough.
+- **Literal types** are self-documenting — no Field description needed.
+- **NO business logic** in server.py — each tool delegates to module orchestrator.
+
 ```python
 # INFRASTRUCTURE
 from typing import Literal
 from fastmcp import FastMCP
+from mcp.types import TextContent
 
 from src.domain.tool_one import tool_one_workflow
 
@@ -23,24 +34,36 @@ mcp = FastMCP("ServerName")
 @mcp.tool
 def tool_one(
     param: str,
-    option: Literal["opt_a", "opt_b"] = "opt_a"
+    option: Literal["opt_a", "opt_b"] = "opt_a",
+    limit: int = 25
 ) -> list[TextContent]:
-    """Use when user asks for X. Good for Y, Z use cases."""
-    return tool_one_workflow(param, option)
+    """Brief tool purpose."""
+    return tool_one_workflow(param, option, limit)
 
 
 if __name__ == "__main__":
     mcp.run()
 ```
 
-**Rules:**
-- NO business logic in server.py
-- Each tool delegates to module orchestrator
-- Lean tool definitions (see tool-design rule)
-
 # Module Pattern
 
 **CRITICAL:** Each module follows INFRASTRUCTURE → ORCHESTRATOR → FUNCTIONS
+
+## Floor/Cap Pattern
+
+Workflows enforce parameter boundaries. Agent can choose within range, server guarantees sane values.
+
+```python
+# ORCHESTRATOR
+def tool_name_workflow(query: str, limit: int = 25) -> list[TextContent]:
+    limit = max(limit, 10)   # Floor: agent can go higher, never lower
+    limit = min(limit, 100)  # Cap: agent can go lower, never higher
+    raw_data = fetch_data(query, limit)
+    return [TextContent(type="text", text=format_response(raw_data))]
+```
+
+**When to use floors:** Parameters where low values produce incomplete results (limit, top_k, max_files, depth).
+**When to use caps:** Parameters where high values waste resources or hit API limits.
 
 ## Starter Pattern (1-3 modules)
 
@@ -52,20 +75,21 @@ import requests
 from mcp.types import TextContent
 
 API_BASE = "https://api.example.com"
-RESULTS_LIMIT = 20
+MAX_LIMIT = 100
 
 
 # ORCHESTRATOR
-def tool_name_workflow(param: str, option: str = "default") -> list[TextContent]:
-    raw_data = fetch_data(param, option)
+def tool_name_workflow(query: str, limit: int = 25) -> list[TextContent]:
+    limit = max(limit, 10)  # Floor: agent can go higher, never lower
+    raw_data = fetch_data(query, min(limit, MAX_LIMIT))
     return [TextContent(type="text", text=format_response(raw_data))]
 
 
 # FUNCTIONS
 
 # Fetch data from external API
-def fetch_data(param: str, option: str) -> dict:
-    response = requests.get(f"{API_BASE}/endpoint", params={"q": param})
+def fetch_data(query: str, limit: int) -> dict:
+    response = requests.get(f"{API_BASE}/endpoint", params={"q": query, "limit": limit})
     response.raise_for_status()
     return response.json()
 
